@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="ballgame.css">
+  <title>Bouncing Ball Game</title>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="basket"></div>
+    <div id="ball"></div>
+    <div id="scoreboard">
+      <div id="currentScore">Score: 0</div>
+      <div id="highScore">High Score: 0</div>
+    </div>
+    <div id="gameOver">Game Over! Press Enter to Restart</div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const basket = document.getElementById("basket");
+    const ball = document.getElementById("ball");
+    const currentScoreDisplay = document.getElementById("currentScore");
+    const highScoreDisplay = document.getElementById("highScore");
+    const gameOverText = document.getElementById("gameOver");
+
+    let gameWidth = window.innerWidth;
+    let gameHeight = window.innerHeight;
+
+    let basketWidth = basket.offsetWidth;
+    let basketX = (gameWidth - basketWidth) / 2;
+
+    let ballSize = ball.offsetWidth;
+    let ballX = gameWidth / 2;
+    let ballY = 0;
+    let ballSpeedY = 4;
+    let ballSpeedX = 3;
+    let score = 0;
+    let highScore = 0;
+    let gameRunning = true;
+
+    // Move basket with keyboard
+    document.addEventListener("keydown", (e) => {
+      if (!gameRunning) {
+        if (e.key === "Enter") restartGame();
+        return;
+      }
+
+      if (e.key === "ArrowLeft" && basketX > 0) {
+        basketX -= 30;
+      }
+      if (e.key === "ArrowRight" && basketX < gameWidth - basketWidth) {
+        basketX += 30;
+      }
+      basket.style.left = basketX + "px";
+    });
+
+    function gameLoop() {
+      if (!gameRunning) return;
+
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      // Bounce from walls
+      if (ballX <= 0 || ballX >= gameWidth - ballSize) {
+        ballSpeedX = -ballSpeedX;
+      }
+      if (ballY <= 0) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      // Bounce on basket
+      if (
+        ballY + ballSize >= gameHeight - 20 &&
+        ballX + ballSize > basketX &&
+        ballX < basketX + basketWidth
+      ) {
+        let randomFactor = (Math.random() - 0.5) * 4;
+        ballSpeedX = ballSpeedX + randomFactor;
+
+        if (Math.abs(ballSpeedX) < 1) {
+          ballSpeedX = ballSpeedX > 0 ? 1.5 : -1.5;
+        }
+
+        ballSpeedY = -Math.abs(ballSpeedY) - 0.3;
+        score++;
+
+        // Update High Score
+        if (score > highScore) {
+          highScore = score;
+          highScoreDisplay.innerText = "High Score: " + highScore;
+        }
+
+        // Change ball color randomly
+        const randomColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        ball.style.background = `radial-gradient(circle, ${randomColor}, #ff4b2b)`;
+      }
+
+      // Game Over condition
+      if (ballY > gameHeight) {
+        gameOver();
+        return;
+      }
+
+      ball.style.left = ballX + "px";
+      ball.style.top = ballY + "px";
+      currentScoreDisplay.innerText = "Score: " + score;
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+      gameRunning = false;
+      gameOverText.style.display = "block";
+    }
+
+    function restartGame() {
+      gameWidth = window.innerWidth;
+      gameHeight = window.innerHeight;
+      basketWidth = basket.offsetWidth;
+
+      ballSize = ball.offsetWidth;
+      ballX = gameWidth / 2;
+      ballY = 0;
+      ballSpeedY = 4;
+      ballSpeedX = 3;
+      score = 0;
+
+      currentScoreDisplay.innerText = "Score: 0";
+      gameOverText.style.display = "none";
+      basketX = (gameWidth - basketWidth) / 2;
+      basket.style.left = basketX + "px";
+
+      gameRunning = true;
+      gameLoop();
+    }
+
+    gameLoop();
+
+    // Adjust game when resizing
+    window.addEventListener("resize", () => {
+      gameWidth = window.innerWidth;
+      gameHeight = window.innerHeight;
+      basketWidth = basket.offsetWidth;
+    });
+  </script>
+</body>
+</html>
